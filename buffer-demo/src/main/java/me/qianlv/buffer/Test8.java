@@ -1,4 +1,4 @@
-package me.qianlv;
+package me.qianlv.buffer;
 
 import java.nio.ByteBuffer;
 import java.nio.InvalidMarkException;
