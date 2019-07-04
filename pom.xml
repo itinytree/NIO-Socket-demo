@@ -11,6 +11,7 @@
     <description>NIO and Socket Programming Technical Guide demos</description>
     <modules>
         <module>buffer-demo</module>
+        <module>channel-demo</module>
     </modules>
 
 
