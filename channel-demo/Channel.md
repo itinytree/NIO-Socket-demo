@@ -201,7 +201,7 @@ OpenOption接口实现类通常由StandardOpenOption枚举类进行代替。
 
 StandardOpenOption中的枚举常量
 
-| StandardOpenOption | 创建一个新文件（如果它不存在）。如果还设置了CREATE_NEW选项，则忽略此选项。此选项只是一个创建文件的意图，并不能真正地创建文件，因此，CREATE不能单独使用，那样就会出现java.nio.file.NoSuchFileException异常。 |
+| StandardOpenOption | 描述 |
 | ------------------ | ------------------------------------------------------------ |
 | CREATE             | 创建一个新文件（如果它不存在）。如果还设置了CREATE_NEW选项，则忽略此选项。此选项只是一个创建文件的意图，并不能真正地创建文件，因此，CREATE不能单独使用，那样就会出现java.nio.file.NoSuchFileException异常。 |
 | WRITE              | 打开以进行写入访问                                           |
