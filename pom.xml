@@ -19,6 +19,7 @@
     <modules>
         <module>buffer-demo</module>
         <module>channel-demo</module>
+        <module>network-demo</module>
     </modules>
 
 

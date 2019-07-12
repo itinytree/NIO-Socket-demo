@@ -101,17 +101,27 @@ FileChannel 类的主要作用是读取、写入、映射和操作文件的通�
 
 获取FileChannel的方式，通过FileInputStream、FileOutputStream或RandomAccessFile对象获得文件通过，方法是调用该对象的`getChannel()`方法。
 
-#### 方法
+#### 常用方法
 
-1. int write(ByteBuffer src) 将remaining字节序列从给定的缓冲区写入此通道的当前位置，此方法的行为与WritableByteChannel接口所指定的行为完全相同：在任意给定时刻，一个可写入通道上只能进行一个写入操作。是**同步的**。
+1. int write(ByteBuffer src) 
 
-2.  int read(ByteBuffer dst) 将字节序列从此通道的当前位置读入给定的缓冲区的当前位置。此方法的行为与ReadableByteChannel接口所指定的行为完全相同：在任意给定时刻，一个可读取通道上只能进行一个读取操作。ByteBuffer缓冲区 remaining 为多少，就从通道中读多少字节的数据。
+   将remaining字节序列从给定的缓冲区写入此通道的当前位置，此方法的行为与WritableByteChannel接口所指定的行为完全相同：在任意给定时刻，一个可写入通道上只能进行一个写入操作。是**同步的**。
 
-3. long write(ByteBuffer[] srcs) 将每个缓冲区的 remaining 字节序列写入此通道的当前位置。
+2. int read(ByteBuffer dst)
 
-4. long read(ByteBuffer[] dsts) 将字节序列从此通道读入给定的缓冲区数组中的第0个缓冲区的当前位置。将通道当前位置的字节序列读入多个ByteBuffer缓冲区的 remaining 剩余空间中。
+   将字节序列从此通道的当前位置读入给定的缓冲区的当前位置。此方法的行为与ReadableByteChannel接口所指定的行为完全相同：在任意给定时刻，一个可读取通道上只能进行一个读取操作。ByteBuffer缓冲区 remaining 为多少，就从通道中读多少字节的数据。
 
-5. long write(ByteBuffer[] srcs, int offset, int length) 以指定缓冲区数组的 offset 下标开始，向后使用 length 个字节缓冲区，再将每个缓冲区的 remaining 剩余字节子序列写入此通道的当前位置。
+3. long write(ByteBuffer[] srcs)
+
+   将每个缓冲区的 remaining 字节序列写入此通道的当前位置。
+
+4. long read(ByteBuffer[] dsts)
+
+   将字节序列从此通道读入给定的缓冲区数组中的第0个缓冲区的当前位置。将通道当前位置的字节序列读入多个ByteBuffer缓冲区的 remaining 剩余空间中。
+
+5. long write(ByteBuffer[] srcs, int offset, int length)
+
+   以指定缓冲区数组的 offset 下标开始，向后使用 length 个字节缓冲区，再将每个缓冲区的 remaining 剩余字节子序列写入此通道的当前位置。
 
    参数说明：
 
@@ -119,41 +129,67 @@ FileChannel 类的主要作用是读取、写入、映射和操作文件的通�
 
    length：要访问的最大缓冲区数；必须为非负数并且不能大于 srcs.length - offset。
 
-6. long read(ByteBuffer[] dsts, int offset, int length) 将通道中当前位置的字节序列读入以下标为offset开始的ByteBuffer[] 数组中的 remaining 剩余空间中，并且连续写入 length 个 ByteBuffer 缓冲区。
+6. long read(ByteBuffer[] dsts, int offset, int length)
 
-7. write(ByteBuffer src, long position) 将缓冲区的remaining 剩余字节序列写入通道的指定位置。此方法**不修改此通道的位置**。如果给定的位置大于该文件的当前大小，则该文件将扩大以容纳新的字节；在以前文件末尾和新写入字节之间的字节值是未指定的。**是同步的。**
+   将通道中当前位置的字节序列读入以下标为offset开始的ByteBuffer[] 数组中的 remaining 剩余空间中，并且连续写入 length 个 ByteBuffer 缓冲区。
 
-8. read(ByteBuffer dst, long position) 将通道的指定位置的字节序列读入给定的缓冲区的当前位置。参数dst代表要向其中传输字节的缓冲区。position代表开始传输的**文件位置**，必须为非负数。从给定的文件位置开始读取各字节，而不是从该通道的当前位置。如果给定的位置大于该文件的当前大小，则不读取任何字节。是同步的。
+7. write(ByteBuffer src, long position)
 
-9. position(long newPosition) 设置此通道的**文件位置**。
+   将缓冲区的remaining 剩余字节序列写入通道的指定位置。此方法**不修改此通道的位置**。如果给定的位置大于该文件的当前大小，则该文件将扩大以容纳新的字节；在以前文件末尾和新写入字节之间的字节值是未指定的。**是同步的。**
 
-10. long size() 返回此通道关联文件的当前大小。
+8. read(ByteBuffer dst, long position)
 
-11. truncate(long size) 将此通道的文件截取为给定大小。 如果此通道的文件位置大于给定大小，则将位置设置为该大小。
+   将通道的指定位置的字节序列读入给定的缓冲区的当前位置。参数dst代表要向其中传输字节的缓冲区。position代表开始传输的**文件位置**，必须为非负数。从给定的文件位置开始读取各字节，而不是从该通道的当前位置。如果给定的位置大于该文件的当前大小，则不读取任何字节。是同步的。
 
-12. longtransferTo(long position, long count, WritableByteChannel target) 将字节从此通道的文件传输到给定的可写入字节通道。此方法不修改此通道的位置。
+9. position(long newPosition)
 
-13. long transferFrom(ReadableByteChannel src, long position, long count) 将字节从给定的可读取字节通道传输到此通道的文件中。此方法不修改此通道的位置。
+   设置此通道的**文件位置**。
 
-14. FileLock lock(long position, long size, boolean shared) 获取此通道的文件给定区域上的锁定。文件锁定是以整个Java虚拟机来保持的。
+10. long size()
 
-15. FileLock lock() 获取此通道的文件的独占锁定，是对文件的整体进行锁定。
+   返回此通道关联文件的当前大小。
+
+11. truncate(long size)
+
+    将此通道的文件截取为给定大小。 如果此通道的文件位置大于给定大小，则将位置设置为该大小。
+
+12. longtransferTo(long position, long count, WritableByteChannel target)
+
+    将字节从此通道的文件传输到给定的可写入字节通道。此方法不修改此通道的位置。
+
+13. long transferFrom(ReadableByteChannel src, long position, long count)
+
+    将字节从给定的可读取字节通道传输到此通道的文件中。此方法不修改此通道的位置。
+
+14. FileLock lock(long position, long size, boolean shared)
+
+    获取此通道的文件给定区域上的锁定。文件锁定是以整个Java虚拟机来保持的。
+
+15. FileLock lock()
+
+    获取此通道的文件的独占锁定，是对文件的整体进行锁定。
 
 16. FileLock tryLock(long position, long size, boolean shared)  试图获取对此通道的文件给定区域的锁定。此方法不会阻塞。
 
-17. FileLock tryLock() 获取对此通道的文件的独占锁定，是对文件的整体进行锁定。
+17. FileLock tryLock()
 
-18. void force(boolean metaData) 强制将所有对此通道的文件更新写入包含该文件的存储设备中。如果此通道的文件驻留在本地存储设备上，则此方法返回时可保证：在此通道创建后或在最后一次调用此方法后，对该文件进行的所有更改都已写入该设备中。这对确保在系统崩溃时不会丢失重要信息特别有用。如果该文件不在本设备上，则无法提供这样的保证。
+    获取对此通道的文件的独占锁定，是对文件的整体进行锁定。
+
+18. void force(boolean metaData)
+
+    强制将所有对此通道的文件更新写入包含该文件的存储设备中。如果此通道的文件驻留在本地存储设备上，则此方法返回时可保证：在此通道创建后或在最后一次调用此方法后，对该文件进行的所有更改都已写入该设备中。这对确保在系统崩溃时不会丢失重要信息特别有用。如果该文件不在本设备上，则无法提供这样的保证。
 
     metaData参数可用于限制此方法必须执行的I/O操作数量。在为此参数传入false时，只需要对文件内容的更新写入存储设备；在传入true时，则必须写入对文件内容和元数据的更新，这通常需要一个以上的I/O操作。此参数是否实际有效，取决于底层操作系统，因此是未指定的。
 
     调用此方法可能导致发生I/O操作，即使该通道仅允许进行读取操作时也是如此。
 
     此方法只保证强制进行通过此类中已定义的方法对此通道的文件所进行的更改。此方法不一定强制进行那些通过修改已映射字节缓冲区（通过调用map()方法获得）的内容所进行的更改。
-    
+
     其实在调用FileChannel类的write()方法时，操作系统为了运行的效率，先是把那些保存到硬盘上的数据暂时放入操作系统内核的缓存中，以减少硬盘的读写次数，然后在某一个时间点再将内核缓存中的数据批量地同步到硬盘中，但同步的时间却是由操作系统决定的，因为时间是未知的，这时就不能让操作系统来决定，所以要显式地调用force()方法来强制进行同步，这样做的目的是防止在系统崩溃或断电时缓存中的数据丢失而造成损失。但是，force(boolean) 方法**并不能完全保证数据不丢失**，如果在执行force()方法时出现断电的情况，那么硬盘上的数据有可能就不是完整的，而且由于断电地原因导致内核缓存中的数据也丢失了，最终造成的结果就是force(boolean)方法执行了，数据也有可能丢失。那么该方法的最终目的是什么呢？其实force(boolean)方法的最终目的是**尽最大的努力减少**数据的丢失。
 
-19. MappedByteBuffer map(FileChannel.MapMode mode, long position, long size) 将此通道的文件区域直接映射到内存中。position是指**文件中的位置**。
+19. MappedByteBuffer map(FileChannel.MapMode mode, long position, long size)
+
+    将此通道的文件区域直接映射到内存中。position是指**文件中的位置**。
 
     映射关系一经创建，就不再依赖于创建它时所用的文件通道。特别是关闭通道对映射关系的有效性没有任何影响。
 
@@ -167,9 +203,13 @@ FileChannel 类的主要作用是读取、写入、映射和操作文件的通�
     2. 读/写：对得到的缓冲区的更改将最终传播到文件中; 该更改对映射到同一文件的其他程序不一定是可见的。 （ MapMode.READ_WRITE ）
     3. 专用：对得到的缓冲区的更改不会传播到文件，并且该更改对映射到同一文件的其他程序也不是可见的；相反，会创建缓冲区已修改部分的专用副本。（ MapMode.PRIVATE ）
 
-20. FileChannel open(Path path, OpenOption… options) 打开一个文件，以便对这个文件进行后期处理。
+20. FileChannel open(Path path, OpenOption… options)
 
-21. public final boolean isOpen() 判断当前的通道是否处于打开的状态。
+    打开一个文件，以便对这个文件进行后期处理。
+
+21. public final boolean isOpen()
+
+    判断当前的通道是否处于打开的状态。
 
 ### MappedByteBuffer  
 
