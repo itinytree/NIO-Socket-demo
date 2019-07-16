@@ -47,11 +47,15 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    设置超时时间，通过指定超时timeout值启用/禁用 SO_TIMEOUT，以ms为单位。
 
-   在将此选项设置为非零的超时timeout值时，将引发 **java.net.SocketTimeoutException** ，但 ServerSocket 仍旧有效，在结合 try-catch 结构后，还可以继续进行 accept() 方法的操作。SO_TIMEOUT 选项必须在进入阻塞操作前被启用才能生效。
+   在将此选项设置为非零的超时timeout值时，对此 ServerSocket 调用 accept() 方法将只阻塞 timeout 的时间长度。如果超过超时值，将引发 **java.net.SocketTimeoutException** ，但**ServerSocket 仍旧有效**，在结合 try-catch 结构后，还可以继续进行 accept() 方法的操作。SO_TIMEOUT 选项必须在**进入阻塞操作前**被启用才能生效。注意，超时值必须是大于0的数。超时值为0被解释为无穷大超时值。
 
    参数 int timeout 的作用是在指定的时间内必须有客户端的连接请求，超过这个时间即出现异常，默认值是0，即永远等待。
 
-3. public ServerSocket(int port, int backlog)
+3. public int getSoTimeout()
+
+   获取 SO_TIMEOUT 的设置。
+
+4. public ServerSocket(int port, int backlog)
 
    构造函数中的 backlog 的主要作用就是允许接受客户端连接请求的个数。客户端有很多连接进入操作系统中，将这些连接放入操作系统的队列中，当执行 accept() 方法时，允许客户端连接的个数要取决于 backlog 参数。
 
@@ -61,3 +65,52 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    backlog参数必须是大于0的正值，如果传递的值等于或小于0，则使用默认值50。
 
+5. public void bind(SocketAddress endpoint)
+
+   将ServerSocket绑定到特定的Socket地址(IP地址和端口号)，使用这个地址与客户端进行通信。如果地址为null，则系统将挑选一个临时端口号和一个有效本地地址来绑定套接字。
+
+   该方法的使用场景就是在使用ServerSocket类的无参构造方法后想指定本地端口。
+
+   SocketAddress 类表示**不带任何协议**附件的 Socket Address。SocketAddress 类是抽象类，有1个子类 InetSocketAddress。
+
+   需要注意的是，InetAddress 类代表 IP 地址，而 InetSocketAddress 类代表 Socket 地址。
+
+6. public void setReuseAddress(boolean on)
+
+   启用/禁用 SO_REUSEADDR 套接字选项。
+
+   关闭TCP连接时，该连接可能在关闭后的一段时间内保持超时状态（通常称为 TIME_WAIT 状态或2MSL等待状态）。对于使用已知套接字地址或端口的应用程序而言，如果存在处于超时状态的连接（包括地址和端口），则应用程序可能不能将套接字绑定到所需的SocketAddress上。
+
+   如果在使用 bind(SocketAddress) 方法"绑定套接字之前"启用 SO_REUSEADDR 选项，就可以允许绑定到处于超时状态的套接字。
+
+   在调用Socket类的close()方法时，会关闭当前连接，释放使用的端口，但在操作系统层面，并不会马上释放当前使用的端口。如果端口呈 TIME_WAIT 状态，则在 Linux 操作系统中可以重用此状态的端口。
+
+   什么是 TIME_WAIT 状态？
+
+   服务端（Server）与客户端（Client）建立TCP连接之后，主动关闭连接的一方就进入 TIME_WAIT 状态。
+
+7. public boolean getReuseAddress()
+
+   测试是否启用 SO_REUSEADDR。
+
+8. public void setReceiveBufferSize(int size)
+
+   为此ServerSocket接受的套接字的 SO_RCVBUF 选项设置新的建议值。
+
+   在接受的套接字中，实际被采纳的值必须在 accept() 方法返回套接字后通过调用 Socket.getReceiveBufferSize() 方法进行获取。
+
+### Socket类的使用
+
+#### 常用方法
+
+1. public void bind(SocketAddress bindpoint)
+
+   将套接字绑定到本地地址。如果地址为null，则系统将随机挑选一个空闲的端口和一个有效的本地地址来绑定套接字。
+
+2. public void connect(SocketAddress endpoint)
+
+   将此套接字连接到服务端。
+
+3. public void connect(SocketAddress endpoint, int timeout)
+
+   将此套接字连接到服务端，并指定一个超时值。超时值是0意味着无限超时。
