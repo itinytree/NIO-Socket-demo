@@ -39,6 +39,8 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
 #### 常用方法
 
+##### 接受accept与超时Timeout
+
 1. public Socket accept() 
 
    方法的作用就是侦听并接受此套接字的链接。此方法在连接传入之前一直阻塞。 
@@ -55,6 +57,8 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    获取 SO_TIMEOUT 的设置。
 
+##### 构造方法的backlog参数含义
+
 4. public ServerSocket(int port, int backlog)
 
    构造函数中的 backlog 的主要作用就是允许接受客户端连接请求的个数。客户端有很多连接进入操作系统中，将这些连接放入操作系统的队列中，当执行 accept() 方法时，允许客户端连接的个数要取决于 backlog 参数。
@@ -65,7 +69,9 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    backlog参数必须是大于0的正值，如果传递的值等于或小于0，则使用默认值50。
 
-5. public void bind(SocketAddress endpoint)
+##### 绑定到指定的SocketAddress
+
+1. public void bind(SocketAddress endpoint)
 
    将ServerSocket绑定到特定的Socket地址(IP地址和端口号)，使用这个地址与客户端进行通信。如果地址为null，则系统将挑选一个临时端口号和一个有效本地地址来绑定套接字。
 
@@ -75,7 +81,23 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    需要注意的是，InetAddress 类代表 IP 地址，而 InetSocketAddress 类代表 Socket 地址。
 
-6. public void setReuseAddress(boolean on)
+2. public void bind(SocketAddress endpoint, int backlog)
+
+   绑定到指定IP，还可以设置backlog的连接数量。
+
+##### 获取本地SocketAddress对象及本地端口
+
+1. public SocketAddress getLocalSocketAddress()
+
+   获取本地的SocketAddress对象，它返回此Socket绑定的端口地址。
+
+2. public int getLocalPort()
+
+   获取Socket绑定到本地的端口号
+
+##### Socket选项 ReuseAddress
+
+1. public void setReuseAddress(boolean on)
 
    启用/禁用 SO_REUSEADDR 套接字选项。
 
@@ -89,28 +111,104 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
    服务端（Server）与客户端（Client）建立TCP连接之后，主动关闭连接的一方就进入 TIME_WAIT 状态。
 
-7. public boolean getReuseAddress()
+2. public boolean getReuseAddress()
 
    测试是否启用 SO_REUSEADDR。
 
-8. public void setReceiveBufferSize(int size)
+##### Socket选项ReceiveBufferSize
 
-   为此ServerSocket接受的套接字的 SO_RCVBUF 选项设置新的建议值。
+1. public void setReceiveBufferSize(int size)
 
-   在接受的套接字中，实际被采纳的值必须在 accept() 方法返回套接字后通过调用 Socket.getReceiveBufferSize() 方法进行获取。
+   为此ServerSocket**接受的套接字的 SO_RCVBUF 选项**设置新的建议值。
+
+   在接受的套接字中，**实际被采纳的值**必须在 accept() 方法返回套接字后通过调用 Socket.getReceiveBufferSize() 方法进行获取。
+
+   注意：对于客户端，SO_RCVBUF选项必须在 connect() 方法调用之前设置，对于服务端，SO_RCVBUF 选项必须在 bind() 前设置。
 
 ### Socket类的使用
 
 #### 常用方法
 
+##### 绑定 bind 与 connect 以及端口生成的时机
+
 1. public void bind(SocketAddress bindpoint)
 
-   将套接字绑定到本地地址。如果地址为null，则系统将随机挑选一个空闲的端口和一个有效的本地地址来绑定套接字。
+   将套接字绑定到本地地址。如果地址为null，则系统将随机挑选一个空闲的端口和一个有效的本地地址来绑定套接字。该方法要**优先于**connect()方法执行，也就是要先绑定本地端口再执行连接方法。
 
 2. public void connect(SocketAddress endpoint)
 
    将此套接字连接到服务端。
 
+##### 连接与超时
+
 3. public void connect(SocketAddress endpoint, int timeout)
 
    将此套接字连接到服务端，并指定一个超时值。超时值是0意味着无限超时。
+
+##### 获得远程端口与本地端口
+
+4. public int getPort()
+
+   返回此套接字**连接到的远程端口**
+
+5. public int getLocalPort()
+
+   返回此套接字**绑定到的本地端口**
+
+##### 获得本地InetAddress地址与本地SocketAddress地址
+
+6. public InetAddress getLocalAddress()
+
+   获取套接字**绑定的本地InetAddress地址**信息
+
+7. public SocketAddress getLocalSocketAddress()
+
+   返回此套接字**绑定的端点的Socket-Address地址**信息。
+
+##### 获得远程InetAddress与远程SocketAddress地址
+
+8. public InetAddress getInetAddress()
+
+   返回此套接字**连接到的远程**的InetAddress地址。
+
+9. public SocketAddress getRemoteSocketAddress()
+
+   返回此套接字**远程端点的SocketAddress地址**
+
+10. public void close()
+
+    关闭此套接字
+
+    所有当前阻塞于此套接字上的I/O操作中的线程都将抛出SocketException。套接字被关闭后，便不可在以后的网络连接中使用（即无法重新连接或重新绑定），如果想再次使用套接字，则需要创建新的套接字。
+
+    关闭此套接字也将会关闭该套接字的 InputStream 和 OutputStream。如果此套接字有一个与之关联的通道，则关闭通道。
+
+##### 开启半读半写状态
+
+11. public void shutdownInput()
+
+    将此套接字的输入流置于"流的末尾EOF"。
+
+    也就是在套接字上调用 shutdownInput() 方法后从套接字输入流读取内容，流将返回EOF(文件结束符)。发送到套接字的输入流端的任何数据都将在确认后被**静默丢弃**。调用此方法的一端进入半读状态(read-half)，也就是此端不能获得输入流，但对端却能获得输入流。一端能读，另一端不能读，称为半读。
+
+12. public void shutdownOutput()
+
+    禁用此套接字的输出流。
+
+    对于TCP套接字，任何以前写入的数据都将被发送，并且后跟TCP的正常连接终止序列。如果在套接字上调用 shutdownOutput() 方法后写入套接字输出流，则该流将抛出 IOException。调用此方法的一端进入半写状态(write-half)，也就是此端不能获得输出流。但对端却能获得输出流。一端能写，另一端不能写，称为半写。
+
+13. public boolean isInputShutdown()
+
+    返回是否关闭套接字连接的半读状态(read-half)。
+
+14. public boolean isOutputShutdown()
+
+    返回是否关闭连接的半写状态(write-half)
+
+##### Socket选项TcpNoDelay
+
+15. public void setTcpNoDelay(boolean on)
+
+    启用/禁用TCP_NODELAY（启用/禁用 Nagle 算法）。
+
+    on - true启用TCP_NODELAY， false禁用。
