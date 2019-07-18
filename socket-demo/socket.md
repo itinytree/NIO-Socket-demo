@@ -212,3 +212,96 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
     启用/禁用TCP_NODELAY（启用/禁用 Nagle 算法）。
 
     on - true启用TCP_NODELAY， false禁用。
+
+##### Socket选项SendBufferSize
+
+1. public void setSendBufferSize(int size)
+
+   Socket 中的 SO_RCVBUF 选项是设置接收缓冲区的大小的，而SO_SNDBUF选项是设置发送缓冲区大小的。
+
+   将此Socket的SO_SNDBUF选项设置为指定的值。平台的网络连接代码将SO_SNDBUF选项用作设置底层网络I/O缓存的大小的提示。由于SO_SNDBUF是一种提示，因此想要验证缓冲区设置大小的应用程序应该调用 getSendBufferSize() 方法。
+
+##### Socket选项Linger
+
+1. public void setSoLinger(boolean on, int linger)
+
+   Socket中的SO_LINGER选项用来控制 Socket 关闭 close() 方法时的行为。
+
+   在默认情况下，执行Socket的close()方法后，该方法会立即返回，但底层的Socket实际上并不会立即关闭，它会延迟一段时间。在延迟的时间里做什么呢？是将"发送缓冲区"中的剩余数据在延迟的时间内继续发送给对方，然后才会真正地关闭Socket连接。
+
+   setSoLinger(boolean on, int linger)方法的作用是启用/禁用具有指定逗留时间（以秒为单位）的SO_LINGER。最大超时值是特定于平台的。改设置仅影响套接字关闭。参数on的含义为是否逗留，参数linger的含义为逗留时间，单位为秒。
+
+2. public int getSoLinger()
+
+   返回SO_LINGER的设置。返回-1意味着禁用该选项。该设置**仅影响套接字关闭**。
+
+##### Socket选项Timeout
+
+1. public void setSoTimeout(int timeout)
+
+   启用/禁用带有指定超时值得 SO_TIMEOUT，以毫秒为单位。将此选项设为非零的超时值时，在与此Socket关联的 InputStream 上调用 read()方法将只阻塞此时间长度。如果超过超时值，就将引发 java.net.SocketTimeoutException，尽管**Socket仍旧有效**。启用 timeOut 特性必须在进入阻塞前被启用才能生效。
+
+2. public int getSoTimeout()
+
+   返回SO_TIMEOUT的设置。
+
+##### Socket 选项 OOBInline
+
+Socket的选项SO_OOBINLINE 的作用是在套接字上接收的所有TCP紧急数据都将通过套接字输入流接收。禁用该选项时（默认），将悄悄丢弃紧急数据。OOB(Out Of Bound,带外数据)可以理解成是需要紧急发送的数据。
+
+1. public void setOOBInline(boolean on)
+
+   启用/禁用OOBINLINE选项（TCP紧急数据的接收者），默认情况下，此选项是禁用的，即在套接字上接收的TCP紧急数据被默认丢弃。
+
+   public void setOOBInline(boolean on)方法在接收端进行设置来决定是否接收与忽略紧急数据。在发送端，使用public void sendUrgentData(int data)方法向对方发送1个单字节的数据。
+
+2. public void sendUrgentData(int data)
+
+   向对方发送1个单字节的数据，但是这个单字节的数据并不存储在输出缓冲区中，而是立即将数据发送出去，而在对方程序中并不知道发送过来的数据是由 OutputStream 还是由 sendUrgentData(int data)发送过来的。
+
+在调用sendUrgentData()方法时所发送的数据可以被对方忽略，结合这个特性可以实现测试网络连接状态的心跳机制，测试代码如下:
+
+```java
+/**
+ * 服务端
+ *
+ * @author xiaoshu
+ */
+public class Test1 {
+    public static void main(String[] args) throws InterruptedException, IOException {
+        ServerSocket serverSocket = new ServerSocket(8088);
+        Socket socket = serverSocket.accept();
+        Thread.sleep(Integer.MAX_VALUE);
+        socket.close();
+        serverSocket.close();
+    }
+}
+
+/**
+ * 客户端
+ *
+ * @author xiaoshu
+ */
+public class Test2 {
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket("localhost", 8088);
+        try {
+            int count = 0;
+            for (; ; ) {
+                socket.sendUrgentData(1);
+                count++;
+                System.out.println("执行了 " + count + "次嗅探");
+                Thread.sleep(10000);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("----------网络断开了!");
+            socket.close();
+        }
+    }
+}
+```
+
+##### Socket选项KeepAlive
+
+Socket选项SO_KEEPALIVE的作用是在创建了服务端与客户端时，使客户端连接上服务端
