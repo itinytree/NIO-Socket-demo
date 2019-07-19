@@ -239,7 +239,7 @@ TCP提供基于“流”的“长连接”的数据传递，发送的数据带�
 
 1. public void setSoTimeout(int timeout)
 
-   启用/禁用带有指定超时值得 SO_TIMEOUT，以毫秒为单位。将此选项设为非零的超时值时，在与此Socket关联的 InputStream 上调用 read()方法将只阻塞此时间长度。如果超过超时值，就将引发 java.net.SocketTimeoutException，尽管**Socket仍旧有效**。启用 timeOut 特性必须在进入阻塞前被启用才能生效。
+   启用/禁用带有指定超时值得 SO_TIMEOUT，以毫秒为单位。将此选项设为非零的超时值时，在与此Socket关联的**InputStream 上调用 read()** 方法将只阻塞此时间长度。如果超过超时值，就将引发 java.net.SocketTimeoutException，尽管**Socket仍旧有效**。启用 timeOut 特性必须在进入阻塞前被启用才能生效。
 
 2. public int getSoTimeout()
 
@@ -304,4 +304,83 @@ public class Test2 {
 
 ##### Socket选项KeepAlive
 
-Socket选项SO_KEEPALIVE的作用是在创建了服务端与客户端时，使客户端连接上服务端
+Socket选项SO_KEEPALIVE的作用是在创建了服务端与客户端时，使客户端连接上服务端。
+
+当设置SO_KEEPALIVE为true时，若对方在某个时间（时间取决于操作系统内核设置）内没有发送任何数据过来，那么端点都会发送一个ACK探测包到对方，探测对方的TCP/IP连接是否有效（对方可能断电，断网）。如果不设置此选项，那么当客户端宕机时，服务端永远也不知道客户端宕机了，仍然保存这个失效的连接。如果设置了此选项，就会将此连接关闭。
+
+1. public boolean getKeepAlive()
+
+   判断是否启用SO_KEEPALIVE选项
+
+2. public void setKeepAlive(boolean on)
+
+   设置是否启用SO_KEEPALIVE选项。
+
+##### Socket选项TrafficClass
+
+IP规定了4中服务类型，用来定性地描述服务的质量。
+
+1）IPTOS_LOWCOST (0x02) 发送成本低
+2）IPTOS_RELIABILITY (0x04) 高可靠性，保证把数据可靠地送到目的地。
+3）IPTOS_THROUGHPUT (0x08) 最高吞吐量，一次可以接收或者发送大批量的数据。
+4）IPTOS_LOWDELAY (0x10) 最小延迟，传输数据的速度快，把数据快速送达目的地。
+
+这 4 中服务类型还可以使用"或"运算进行相应的组合。
+
+1. public void setTrafficClass(int tc)
+
+   为从此 Socket 上发送的包在 IP 头中设置流量类别(traffic class)
+
+2. public int getTrafficClass()
+
+   为从此 Socket上发送的包获取 IP 头中的流量类别或服务类型。
+
+当向 IP 头中设置了流量类型后，路由器或交换机就会根据这个流量类型来进行不同的处理，同时必须要硬件设备进行参与处理。
+
+### 基于 UDP 的 Socket通信
+
+UDP（User Datagram Protocol，用户数据报协议)是一种面向无连接的传输层协议，提供不可靠的信息传送服务。
+
+无连接是指通信时服务端与客户端不需要建立连接，直接把数据包从一端发送到另一端，对方获取数据包再进行数据的处理。
+
+UDP 将网络数据流量压缩成数据包的形式，一个典型的数据包就是一个二进制的数据传输单位，每一个数据包的前 8 个字节用来包含报头信息，剩余字节则用来包含具体的传输数据。
+
+因为 UDP 报文没有可靠性保证、没有顺序保证，以及没有流量控制等功能，所以它可靠性较差。但是，正是因为 UDP 的控制选项较少，在数据传输过程中延迟小、数据传输效率高，因而适合对可靠性要求不高的应用程序。
+
+UDP 和 TCP 都属于传输层协议。
+
+#### 使用 UDP 实现 Socket 通信
+
+在使用 UDP 实现 Socket 通信时，服务端与客户端都是使用 DatagramSocket 类，传输的数据要存放在 DatagramPacket 类中。
+
+DatagramSocket 类表示用来发送和接收数据报包的套接字。数据报套接字是包投递服务的发送或接收点。每个在数据报套接字上发送或接收的包都是单独编址和路由的。从一台机器发送到另一台机器的多个包可能选择不同的路由，也可能按不同的顺序到达。在 DatagramSocket 上总是启用 UDP 广播发送。为了接收广播包，应该将 DatagramSocket 绑定到通配符地址。在某些实现中，将 DatagramSocket绑定到一个更加具体的地址时广播包也可以被接收。
+
+DatagramPacket 类表示数据报包。数据报包用来实现无连接包投递服务。每条报文仅根据该包中包含的信息从一台机器路由到另一台机器。从一台机器发送另一台机器的多个包可能选择不同的路由，也可能按不同的顺序到达。
+
+理论上，一个 UDP 包最大的长度为 2<sup>16</sup>-1(65536 - 1 = 65565)，因此，IP 包最大的发送长度为 65535。但是，在这 65535 之内包含IP 协议头的 20 个字节，还有 UDP 协议头的 8 个字节，即 65535 - 20 - 8 = 65507，因此，UDP 传输用户数据最大的长度为 65507，因此 UDP 传输用户数据的最大的长度为 65507。如果传输的数据大于 65507，则在发送端出现异常。
+
+1. public void receive(DatagramPacket p)
+
+   从此套接字接收数据报包。数据报包也包含发送方的 IP 地址和发送方机器上的端口号。此方法在接收数据报前一直阻塞。
+
+   数据报包对象的 length 字段包含所接收信息的长度。如果发送的信息比接收端包关联的 byte[] 长度长，该信息将被截断。如果发送信息的长度大于 65507，则发送端出现异常。
+
+2. public void send(DatagramPacket p)
+
+   从此套接字发送数据报包。
+
+   DatagramPacket 包含的信息有：将要发送的数据及其长度、远程主机的 IP 地址和远程主机的端口号。
+
+#### DatagramPacket 类中常用 API 的使用
+
+1. public void setData(byte[] buf)
+
+   设置此数据包的数据缓冲区。 
+
+   将此DatagramPacket的偏移设置为0，并将长度设置为buf的长度。
+
+2. public void setLength(int length)
+
+   设置此数据包的长度。 
+
+   包的长度是是指报数据缓冲区中将要发送的字节数，或用来接收数据的包数据缓冲区的字节数。长度必须小于或等于偏移量与包缓冲区长度之和。
