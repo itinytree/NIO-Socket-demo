@@ -21,6 +21,7 @@
         <module>channel-demo</module>
         <module>network-demo</module>
         <module>socket-demo</module>
+        <module>selector-demo</module>
     </modules>
 
 
