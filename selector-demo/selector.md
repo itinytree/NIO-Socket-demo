@@ -23,9 +23,34 @@ SelectableChannel 类可以通过选择器实现多路复用。
 
 SelectableChannel在多线程并发环境下是安全的。
 
+#### 常用方法
+
+#####执行注册操作与获得SelectionKey对象
+
+1. public final SelectionKey register(Selector sel, int ops)
+
+   向给定的选择器注册此通道，返回一个选择键(SelectionKey)。
+
+   ops代表register()方法的返回值SelectionKey的可用操作集，操作集是在SelectionKey类中以常量的形式进行提供的。
+
+   |            | 字段摘要                                  |
+   | ---------- | ----------------------------------------- |
+   | static int | OP_ACCEPT 用于套接字接受操作的操作集位。  |
+   | static int | OP_CONNECT 用于套接字连接操作的操作集位。 |
+   | static int | OP_READ 用于读取操作的操作集位。          |
+   | static int | OP_WRITE 用于写入操作的操作集位。         |
+
+2. public abstract boolean isRegistered()
+
+   判断此通道当前是否已向任何选择器进行了注册。
+
+   由于对SelectionKey执行取消操作和通道进行注销之间有**延迟**，因此在已取消某个通道的所有SelectionKey后，该通道可能在一定时间内还会保持已注册状态。关闭通道后，该通道可能在一定时间内还会保持已注册状态。
+
 ### 通道类ServerSocketChannel
 
 #### 获得ServerSocketChannel与ServerSocket对象
+
+ServerSocketChannel类是针对面向流的侦听套接字的可选择通道。ServerSocketChannel不是侦听网络套接字的完整抽象，必须通过调用socket()方法所获得的关联ServerSocket对象来完成对套接字选项的绑定和操作。
 
 1. public static ServerSocketChannel open()
 
@@ -37,3 +62,52 @@ SelectableChannel在多线程并发环境下是安全的。
 
    返回ServerSocket类的对象，然后与客户端套接字进行通信。
 
+3. public abstract Object blockingLock()
+
+   获取其configureBlocking()和register()方法实现同步的对象，防止重复注册。
+
+### 通道类SocketChannel
+
+#### 打开通道并连接到远程
+
+1. public static SocketChannel open(SocketAddress remote)
+
+   打开套接字通道并将其连接到远程地址。
+
+   注意:
+
+   如果先调用`public static SocketChannel open(SocketAddress remote)`方法,然后设置SocketOption,则不会出现预期的效果,因为在`public static SocketChannel open(SocketAddress remote)`方法中已经自动执行了connect()方法.
+
+   ```java
+   public static SocketChannel open(SocketAddress remote)
+           throws IOException
+   {
+       SocketChannel sc = open();
+       try {
+           sc.connect(remote);
+       } catch (Throwable x) {
+           try {
+               sc.close();
+           } catch (Throwable suppressed) {
+               x.addSuppressed(suppressed);
+           }
+           throw x;
+       }
+       assert sc.isConnected();
+       return sc;
+   }
+   ```
+
+#### 执行Connect连接操作
+
+1. public abstract boolean connect(SocketAddress remote)
+
+   连接到远程通道的Socket。如果此通道处于非阻塞模式，则此方法的调用将启动非阻塞连接操作。
+
+   如果通道呈阻塞模式，则立即发起连接；如果呈非阻塞模式，则不是立即发起连接，而是在随后的某个时间才发起连接。
+
+#### 完成套接字通道的连接过程
+
+1. public abstract boolean finishConnect()
+
+   完成套接字通道的连接过程。通过将套接字通道置于非阻塞模式，然后调用其connect()方法来发起非阻塞连接操作。
