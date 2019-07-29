@@ -1,8 +1,10 @@
 package me.qianlv.selector.test11;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
@@ -12,7 +14,7 @@ import java.util.Set;
  *
  * @author xiaoshu
  */
-public class ServerTest11 {
+public class BigFileServer {
     public static void main(String[] args) throws IOException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
@@ -35,16 +37,25 @@ public class ServerTest11 {
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                 }
                 if (selectionKey.isWritable()) {
-                    //此文件约2.1GB
-                    RandomAccessFile randomAccessFile = new RandomAccessFile("/Users/xiaoshu/software/ubuntu-19.04-desktop-amd64.iso", "rw");
-                    System.out.println("file.length()=" + randomAccessFile.length());
-                    FileChannel channel = randomAccessFile.getChannel();
-                    channel.transferTo(0, randomAccessFile.length(), socketChannel);
-                    channel.close();
-                    randomAccessFile.close();
+                    SocketChannel channel = (SocketChannel) selectionKey.channel();
+                    FileInputStream fileInputStream = new FileInputStream("/Users/xiaoshu/Downloads/MySQL实战45讲.zip");
+                    FileChannel fileChannel = fileInputStream.getChannel();
+                    //500M空间
+                    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(52428000);
+                    while (fileChannel.position() < fileChannel.size()) {
+                        fileChannel.read(byteBuffer);
+                        byteBuffer.flip();
+                        while (byteBuffer.hasRemaining()) {
+                            socketChannel.write(byteBuffer);
+                        }
+                        byteBuffer.clear();
+                        System.out.println(fileChannel.position() + " " + fileChannel.size());
+                    }
+                    System.out.println("结束写操作");
                     socketChannel.close();
                 }
             }
+            serverSocketChannel.close();
         }
         serverSocketChannel.close();
     }

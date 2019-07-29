@@ -111,3 +111,19 @@ ServerSocketChannel类是针对面向流的侦听套接字的可选择通道。S
 1. public abstract boolean finishConnect()
 
    完成套接字通道的连接过程。通过将套接字通道置于非阻塞模式，然后调用其connect()方法来发起非阻塞连接操作。
+
+### Selector 类的使用
+
+Selector 类的主要作用是作为 SelectableChannel 对象的多路复用器。
+
+可通过调用 Selector 类的 open() 方法创建选择器，该方法将使用系统的默认 SelectorProvider 创建新的选择器。也可以通过调用自定义选择器提供者的 openSelector()方法来创建选择器。
+
+#### 常用方法
+
+1. public abstract int select()
+
+   作用是选择一组键，其相应的通道已为 I/O 操作准备就绪。此方法执行处于阻塞模式的选择操作。仅 在至少选择一个通道、调用此选择器的 wakeup()方法，或者当前的线程已中断（以先到者为准）后，此方法才返回。
+
+   返回值代表添加到就绪操作集的键的数目，该数目可能为零，为零代表就绪操作集中的内容并没有添加新的键，保持内容不变。
+
+   

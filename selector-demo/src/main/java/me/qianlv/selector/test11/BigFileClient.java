@@ -14,7 +14,7 @@ import java.util.Set;
  *
  * @author xiaoshu
  */
-public class ClientTest11 {
+public class BigFileClient {
     public static void main(String[] args) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
         socketChannel.configureBlocking(false);
@@ -40,9 +40,7 @@ public class ClientTest11 {
                     if (selectionKey.isReadable()) {
                         ByteBuffer byteBuffer = ByteBuffer.allocate(50000);
                         int readLength = socketChannel.read(byteBuffer);
-                        //此处书本上写的是byteBuffer.flip()
-                        //认为这个地方写的是flip()方法不合理,应该使用的是clear()方法
-                        byteBuffer.clear();
+                        byteBuffer.flip();
                         long count = 0;
                         while (readLength != -1) {
                             count += readLength;
