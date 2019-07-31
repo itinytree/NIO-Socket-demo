@@ -66,6 +66,14 @@ ServerSocketChannel类是针对面向流的侦听套接字的可选择通道。S
 
    获取其configureBlocking()和register()方法实现同步的对象，防止重复注册。
 
+4. public abstract SocketAddress getLocalAddress()
+
+   获取绑定的SocketAddress对象。
+
+5. public final SelectionKey keyFor(Selector sel)
+
+   获取通道向给定选择器注册的SelectionKey。
+
 ### 通道类SocketChannel
 
 #### 打开通道并连接到远程
@@ -106,6 +114,12 @@ ServerSocketChannel类是针对面向流的侦听套接字的可选择通道。S
 
    如果通道呈阻塞模式，则立即发起连接；如果呈非阻塞模式，则不是立即发起连接，而是在随后的某个时间才发起连接。
 
+#### 判断此通道上是否正在进行连接操作
+
+1. Public abstract boolean isConnectionPending()
+
+   判断此通道上是否正在进行连接操作
+
 #### 完成套接字通道的连接过程
 
 1. public abstract boolean finishConnect()
@@ -117,6 +131,8 @@ ServerSocketChannel类是针对面向流的侦听套接字的可选择通道。S
 Selector 类的主要作用是作为 SelectableChannel 对象的多路复用器。
 
 可通过调用 Selector 类的 open() 方法创建选择器，该方法将使用系统的默认 SelectorProvider 创建新的选择器。也可以通过调用自定义选择器提供者的 openSelector()方法来创建选择器。
+
+选择器内部维护了3中SelectionKey-Set(选择键集)
 
 #### 常用方法
 
