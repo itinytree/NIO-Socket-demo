@@ -1,4 +1,4 @@
-package me.qianlv.selector.test16;
+package me.qianlv.selector.test14;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -9,10 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-/**
- * @author xiaoshu
- */
-public class TestClient16 {
+public class ClientTest14 {
     public static void main(String[] args) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
         socketChannel.configureBlocking(false);
@@ -21,23 +18,27 @@ public class TestClient16 {
         socketChannel.connect(new InetSocketAddress("localhost", 8888));
         boolean isRun = true;
         while (isRun) {
-            selector.select();
+            int keyCount = selector.select();
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
             Iterator<SelectionKey> iterator = selectionKeys.iterator();
             while (iterator.hasNext()) {
-                SelectionKey key = iterator.next();
-                if (key.isConnectable()) {
+                SelectionKey selectionKey1 = iterator.next();
+                System.out.println("判读是否为同一key");
+                System.out.println(selectionKey == selectionKey1);
+                if (selectionKey1.isConnectable()) {
                     System.out.println("client isConnectable()");
                     if (socketChannel.isConnectionPending()) {
                         while (!socketChannel.finishConnect()) {
-                            System.out.println("!socketChannel.finishConnect()---------------");
+                            System.out.println("!socketChannel.finishConnect()--------");
                         }
-                        socketChannel.register(selector, SelectionKey.OP_WRITE, "我使用附件进行注册，我来自客户端，你好服务端！");
                     }
+                    socketChannel.register(selector, SelectionKey.OP_WRITE);
                 }
-                if (key.isWritable()) {
+
+                if (selectionKey1.isWritable()) {
                     System.out.println("client isWritable()");
-                    ByteBuffer byteBuffer = ByteBuffer.wrap(((String) key.attachment()).getBytes());
+                    byte[] writeData = "我来自客户端，您好，服务器！".getBytes();
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(writeData);
                     socketChannel.write(byteBuffer);
                     socketChannel.close();
                 }
