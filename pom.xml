@@ -22,6 +22,7 @@
         <module>network-demo</module>
         <module>socket-demo</module>
         <module>selector-demo</module>
+        <module>aio-demo</module>
     </modules>
 
 

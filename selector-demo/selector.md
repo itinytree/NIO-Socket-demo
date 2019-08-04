@@ -172,3 +172,12 @@ Selector 类的主要作用是作为 SelectableChannel 对象的多路复用器�
 
    即使已取消该键，此方法仍将继续返回选择器。
 
+2. public final SelectionKey register(Selector sel, int ops, Object att)
+
+   向给定的选择器注册此通道，返回一个选择键。如果当前已向给定的选择器注册了此通道，则返回表示该注册的选择键。该键的相关操作集将更改为ops，就像调用`interestOps(int)`方法一样。如果att参数不为null，则将该键的附件设置为该值。
+
+3. public final Object attach(Object obj)
+
+   将给点的对象附加到此键。
+
+####  示例代码地址：https://github.com/itinytree/NIO-Socket-demo.git
